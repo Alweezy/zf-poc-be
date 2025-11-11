@@ -1,4 +1,6 @@
 import os
+import time
+
 import requests
 from urllib.parse import urlencode
 from dotenv import load_dotenv
@@ -47,13 +49,38 @@ def exchange_code_for_token(code):
     return tokens
 
 
+# def get_access_token():
+#     """Return a valid access token (refresh if needed)."""
+#     token = _tokens.get("access_token")
+#     if token:
+#         return token
+#
+#     raise RuntimeError("No access token found — user must authenticate first.")
+#
+# import time
+
 def get_access_token():
     """Return a valid access token (refresh if needed)."""
-    token = _tokens.get("access_token")
-    if token:
-        return token
+    access_token = _tokens.get("access_token")
+    expires_in = _tokens.get("expires_in")
+    issued_at = time.time()
 
-    raise RuntimeError("No access token found — user must authenticate first.")
+    # If no token exists, user must authenticate first
+    if not access_token:
+        raise RuntimeError("No access token found — user must authenticate first.")
+
+    # Check expiration (allow a small buffer, e.g., 60 seconds)
+    if issued_at and expires_in:
+        now = time.time()
+        if now - issued_at >= expires_in - 60:
+            # Token is expired or about to expire, refresh it
+            print("Access token expired — refreshing...")
+            new_token = refresh_access_token()
+            _tokens["issued_at"] = time.time()
+            return new_token
+
+    # Token is still valid
+    return access_token
 
 
 def refresh_access_token():

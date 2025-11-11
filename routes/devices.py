@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from services.device_service import fetch_device_readings
+from services.device_service import fetch_device_readings, fetch_spaces
 
 devices_bp = Blueprint("devices", __name__)
 
@@ -27,3 +27,17 @@ def get_device_readings(device_id):
         return jsonify({"error": error}), 502
 
     return jsonify(data)
+
+
+@devices_bp.route("/spaces", methods=["GET"])
+def get_spaces():
+    """Proxy endpoint to fetch user spaces."""
+    page = request.args.get("page", default=0, type=int)
+    page_size = request.args.get("pageSize", default=100, type=int)
+
+    data, error = fetch_spaces(page=page, page_size=page_size)
+    if error:
+        return jsonify({"error": error}), 502
+
+    return jsonify(data)
+

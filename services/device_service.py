@@ -47,3 +47,23 @@ def fetch_device_readings(device_id, start_time, end_time, resolution, measureme
         return response.json(), None
     except requests.exceptions.RequestException as e:
         return None, str(e)
+
+
+def fetch_space_devices(space_id, page=0, page_size=100):
+    """Fetch devices for a given space from the partner API."""
+    url = f"{BASE_URL}/spaces/{space_id}/devices"
+    headers = {
+        "Authorization": f"Bearer {get_access_token()}",
+        "Accept": "application/json",
+    }
+    params = {
+        "page": page,
+        "pageSize": page_size,
+    }
+
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=10)
+        response.raise_for_status()
+        return response.json(), None
+    except requests.exceptions.RequestException as e:
+        return None, str(e)

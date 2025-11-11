@@ -67,3 +67,33 @@ def fetch_space_devices(space_id, page=0, page_size=100):
         return response.json(), None
     except requests.exceptions.RequestException as e:
         return None, str(e)
+
+
+def fetch_spaces_with_devices(page=0, page_size=100):
+    """Fetch spaces and include devices for each space."""
+    spaces_data, error = fetch_spaces(page=page, page_size=page_size)
+    if error:
+        return None, error
+
+    spaces = spaces_data.get("spaces", [])
+    enriched_spaces = []
+
+    for space in spaces:
+        space_id = space.get("id")
+        if not space_id:
+            continue
+
+        devices_data, device_error = fetch_space_devices(space_id)
+        if device_error:
+            # Add the error info but continue gracefully
+            space["devices"] = []
+            space["device_error"] = device_error
+        else:
+            space["devices"] = devices_data.get("devices", [])
+
+        enriched_spaces.append(space)
+
+    return {
+        "spaces": enriched_spaces,
+        "totalNumPages": spaces_data.get("totalNumPages"),
+    }, None
